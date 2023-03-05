@@ -1,4 +1,5 @@
 package Invoicing;
+
 import java.io.BufferedReader;
 import java.sql.*;
 import java.io.BufferedWriter;
@@ -7,28 +8,21 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class Menu {
-	  
-	
-	
-	
+
 	transient Scanner sr = new Scanner(System.in);
 	Shop shop = new Shop();
-	float totalSales = 0; 
+	float totalSales = 0;
 
 	public static void main(String[] args) throws Exception {
 		System.out.println("==== System Main Menu ====");
 
 		Menu menu = new Menu();
 		menu.showMenu();
-		
-		
-		
-	
-	
-	
-	
+
 	}
 
 	public void showMenu() {
@@ -258,9 +252,8 @@ public class Menu {
 	public void createInvoice() {
 		Invoice invoice = new Invoice();
 		invoice.setId(shop.invoiceList.size());
-		System.out.println("Enter the date ");
-		invoice.setDate(sr.nextInt());
-		shop.addCustomer();
+		invoice.setDate(java.time.LocalDate.now());
+		
 		boolean condition = true;
 		while (condition) {
 			System.out.println("1 Enter the ID of customer who purchase");
@@ -312,6 +305,39 @@ public class Menu {
 						totalSales = totalSales + invoice.getTotalAmount();
 						shop.setTotalSales(totalSales);
 						shop.invoiceList.add(invoice);
+						String url = "jdbc:sqlserver://localhost:1433;" + "databaseName=Invoicing_System;"
+								+ "encrypt=true;" + "trustServerCertificate=true";
+						String user = "sa";
+						String pass = "root";
+
+						Connection con = null;
+
+						try {
+							Driver driver = (Driver) Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver")
+									.newInstance();
+							DriverManager.registerDriver(driver);
+							con = DriverManager.getConnection(url, user, pass);
+							Statement st = con.createStatement();
+							String sql1 = "INSERT INTO [dbo].[Invoice]\r\n" + "           ([invoice_date]\r\n"
+									+ "           ,[customer_name]\r\n" + "           ,[num_items]\r\n"
+									+ "           ,[total_paid]\r\n" + "           ,[total_amount]\r\n"
+									+ "           ,[balance])\r\n" + "     VALUES\r\n ( '" + java.time.LocalDate.now()
+									+ "' , '" + invoice.c.getName() + "' ," + invoice.purchase.size() + ","
+									+ invoice.getTotalPaid() + "," + invoice.getTotalAmount() + ","
+									+ invoice.getTotalBalance() + ");";
+
+							Integer m = st.executeUpdate(sql1); // sql execution
+							if (m >= 1) {
+								System.out.println("inserted successfully : " + sql1);
+							} else {
+								System.out.println("insertion failed");
+							}
+							
+
+							con.close();
+						} catch (Exception ex) {
+							System.err.println(ex);
+						}
 						saveInvoice();
 					}
 					break;

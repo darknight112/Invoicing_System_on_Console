@@ -178,10 +178,32 @@ public class Shop {
 
 	public void printItems() {
 		System.out.println("items list ");
-		for (Item element : item) {
-			System.out.println("Item ID " + element.getId() + " Item name " + element.getName() + " Item Price "
-					+ element.getPrice());
+		
+		String url = "jdbc:sqlserver://localhost:1433;" + "databaseName=Invoicing_System;" + "encrypt=true;"
+				+ "trustServerCertificate=true";
+		String user = "sa";
+		String pass = "root";
 
+		Connection con = null;
+
+		try {
+			Driver driver = (Driver) Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver").newInstance();
+			DriverManager.registerDriver(driver);
+			con = DriverManager.getConnection(url, user, pass);
+			Statement st = con.createStatement();
+			String sql1 = "UPDATE [Products]\r\n"
+					+ "   SET [unit_price] ="+ tem.getPrice()
+					+ " WHERE id= "+tem.getId() ;
+
+			Integer m = st.executeUpdate(sql1); // sql execution
+			if (m >= 1) {
+				System.out.println("inserted successfully : " + sql1);
+			} else {
+				System.out.println("insertion failed");
+			}
+			con.close();
+		} catch (Exception ex) {
+			System.err.println(ex);
 		}
 
 	}

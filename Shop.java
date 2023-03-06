@@ -69,9 +69,9 @@ public class Shop {
 				DriverManager.registerDriver(driver);
 				con = DriverManager.getConnection(url, user, pass);
 				Statement st = con.createStatement();
-				String sql1 = "INSERT INTO [Products]\r\n" + "([name]\r\n"
-						+ "           ,[unit_price]\r\n" + "           ,[quantity]\r\n" + "     VALUES\r\n( '"
-						+ temItem.getName() + "' ," + temItem.getPrice() + "," + temItem.getQuantity() + ");";
+				String sql1 = "INSERT INTO [Products]\r\n" + "([name]\r\n" + "           ,[unit_price]\r\n"
+						+ "           ,[quantity]\r\n" + "     VALUES\r\n( '" + temItem.getName() + "' ,"
+						+ temItem.getPrice() + "," + temItem.getQuantity() + ");";
 
 				Integer m = st.executeUpdate(sql1); // sql execution
 				if (m >= 1) {
@@ -114,7 +114,7 @@ public class Shop {
 			DriverManager.registerDriver(driver);
 			con = DriverManager.getConnection(url, user, pass);
 			Statement st = con.createStatement();
-			String sql1 = "DELETE FROM [Products] WHERE id="+input+";";
+			String sql1 = "DELETE FROM [Products] WHERE id=" + input + ";";
 
 			Integer m = st.executeUpdate(sql1); // sql execution
 			if (m >= 1) {
@@ -128,7 +128,6 @@ public class Shop {
 			System.err.println(ex);
 		}
 
-		
 		System.out.println("item deleted ");
 		saveItem();
 
@@ -144,7 +143,7 @@ public class Shop {
 		tem.setPrice(input);
 		System.out.println("item price changed ");
 		item.set(input, tem);
-		
+
 		String url = "jdbc:sqlserver://localhost:1433;" + "databaseName=Invoicing_System;" + "encrypt=true;"
 				+ "trustServerCertificate=true";
 		String user = "sa";
@@ -157,9 +156,8 @@ public class Shop {
 			DriverManager.registerDriver(driver);
 			con = DriverManager.getConnection(url, user, pass);
 			Statement st = con.createStatement();
-			String sql1 = "UPDATE [Products]\r\n"
-					+ "   SET [unit_price] ="+ tem.getPrice()
-					+ " WHERE id= "+tem.getId() ;
+			String sql1 = "UPDATE [Products]\r\n" + "   SET [unit_price] =" + tem.getPrice() + " WHERE id= "
+					+ tem.getId();
 
 			Integer m = st.executeUpdate(sql1); // sql execution
 			if (m >= 1) {
@@ -171,14 +169,12 @@ public class Shop {
 		} catch (Exception ex) {
 			System.err.println(ex);
 		}
-		
-		
+
 		saveItem();
 	}
 
 	public void printItems() {
 		System.out.println("items list ");
-		
 		String url = "jdbc:sqlserver://localhost:1433;" + "databaseName=Invoicing_System;" + "encrypt=true;"
 				+ "trustServerCertificate=true";
 		String user = "sa";
@@ -191,15 +187,15 @@ public class Shop {
 			DriverManager.registerDriver(driver);
 			con = DriverManager.getConnection(url, user, pass);
 			Statement st = con.createStatement();
-			String sql1 = "UPDATE [Products]\r\n"
-					+ "   SET [unit_price] ="+ tem.getPrice()
-					+ " WHERE id= "+tem.getId() ;
+			String sql1 = "SELECT * FROM [Products]";
 
-			Integer m = st.executeUpdate(sql1); // sql execution
-			if (m >= 1) {
-				System.out.println("inserted successfully : " + sql1);
-			} else {
-				System.out.println("insertion failed");
+			ResultSet resultSet = st.executeQuery(sql1);
+			while (resultSet.next()) {
+				System.out.println("ID = " + resultSet.getString("id"));
+				System.out.println("Name = " + resultSet.getString("name"));
+				System.out.println("Unit Price = " + resultSet.getString("unit_price"));
+				System.out.println("Quantity = " + resultSet.getString("quantity"));
+
 			}
 			con.close();
 		} catch (Exception ex) {
@@ -261,7 +257,7 @@ public class Shop {
 
 	public void printCustomers() {
 		System.out.println("List of Customers ");
-		
+
 		String url = "jdbc:sqlserver://localhost:1433;" + "databaseName=Invoicing_System;" + "encrypt=true;"
 				+ "trustServerCertificate=true";
 		String user = "sa";
@@ -275,20 +271,19 @@ public class Shop {
 			con = DriverManager.getConnection(url, user, pass);
 			Statement st = con.createStatement();
 			String sql1 = "SELECT * FROM [Customers]";
-			
-			ResultSet resultSet = st.executeQuery(sql1);
-            while (resultSet.next()) {
-            	System.out.println("ID = " +resultSet.getString("id"));
-            	System.out.println("Name = "+ resultSet.getString("name"));
 
-System.out.println("Phone = "+resultSet.getString("phone"));
-}
+			ResultSet resultSet = st.executeQuery(sql1);
+			while (resultSet.next()) {
+				System.out.println("ID = " + resultSet.getString("id"));
+				System.out.println("Name = " + resultSet.getString("name"));
+
+				System.out.println("Phone = " + resultSet.getString("phone"));
+			}
 			con.close();
 		} catch (Exception ex) {
 			System.err.println(ex);
 		}
-		
-		
+
 	}
 
 	public int getId() {

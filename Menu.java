@@ -1,5 +1,4 @@
 package Invoicing;
-
 import java.io.BufferedReader;
 import java.sql.*;
 import java.io.BufferedWriter;

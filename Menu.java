@@ -316,6 +316,9 @@ public class Menu {
 			}
 			boolean condition2 = true;
 			while (condition2) {
+				System.out.println("Enter the ID of customer ");
+				input = sr.nextInt();
+
 				System.out.println("1 Enter the ID of item you want to purchase ");
 				System.out.println("press 2 to show the items ");
 				System.out.println("press 3 to exit ");

@@ -50,11 +50,14 @@ public class Shop {
 			Item temItem = new Item();
 
 			temItem.setId(item.size());
-			System.out.println("enter item price ");
-			temItem.setPrice(sr.nextInt());
+			
 			System.out.println("enter item name ");
 			String inputS = sr.next();
 			temItem.setName(inputS);
+			System.out.println("enter item price ");
+			temItem.setPrice(sr.nextInt());
+			System.out.println("enter item quantity ");
+			temItem.setQuantity(sr.nextInt());
 			item.add(temItem);
 
 			String url = "jdbc:sqlserver://localhost:1433;" + "databaseName=Invoicing_System;" + "encrypt=true;"
@@ -69,8 +72,11 @@ public class Shop {
 				DriverManager.registerDriver(driver);
 				con = DriverManager.getConnection(url, user, pass);
 				Statement st = con.createStatement();
-				String sql1 = "INSERT INTO [Products]\r\n" + "([name]\r\n" + "           ,[unit_price]\r\n"
-						+ "           ,[quantity]\r\n" + "     VALUES\r\n( '" + temItem.getName() + "' ,"
+				String sql1 = "INSERT INTO [dbo].[Products]\r\n"
+						+ "           ([name]\r\n"
+						+ "           ,[unit_price]\r\n"
+						+ "           ,[quantity])\r\n"
+						+ "     VALUES( '" + temItem.getName() + "' ,"
 						+ temItem.getPrice() + "," + temItem.getQuantity() + ");";
 
 				Integer m = st.executeUpdate(sql1); // sql execution

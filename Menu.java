@@ -200,6 +200,42 @@ public class Menu {
 			element.total();
 
 		}
+		
+		String url = "jdbc:sqlserver://localhost:1433;" + "databaseName=Invoicing_System;" + "encrypt=true;"
+				+ "trustServerCertificate=true";
+		String user = "sa";
+		String pass = "root";
+
+		Connection con = null;
+
+		try {
+			Driver driver = (Driver) Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver").newInstance();
+			DriverManager.registerDriver(driver);
+			con = DriverManager.getConnection(url, user, pass);
+			Statement st = con.createStatement();
+			String sql1 =" select Invoice.invoice_no,Invoice.invoice_date,Invoice.cID,Products.name,Products.unit_price, Invoice_Details.quantity,\r\n"
+					+ "  (select Products.unit_price*Invoice_Details.quantity   from Invoice_Details join Products on Invoice_Details.product_id=Products.id   )\r\n"
+					+ "  ,Invoice.total_amount,Invoice.total_paid,Invoice.balance\r\n"
+					+ "   from Invoice , Invoice_Details , Products where Invoice.invoice_no=Invoice_Details.invoice_no and Invoice_Details.product_id=Products.id;" ;
+
+			ResultSet resultSet = st.executeQuery(sql1);
+			while (resultSet.next()) {
+				System.out.println("invoice number = " + resultSet.getString("invoice_no"));
+				System.out.println("Date = " + resultSet.getString("invoice_date"));
+				System.out.println("Customer ID = " + resultSet.getString("cID"));
+				System.out.println("Product name = " + resultSet.getString("name"));
+				System.out.println("unit price = " + resultSet.getString("unit_price"));
+				System.out.println("quantity = " + resultSet.getString("quantity"));
+				System.out.println("Price = " + resultSet.getString(""));
+				System.out.println("Total Amount = " + resultSet.getString("total_amount"));
+				System.out.println("Total Paid = " + resultSet.getString("total_paid"));
+				System.out.println("Total Balance = " + resultSet.getString("balance"));
+
+			}
+			con.close();
+		} catch (Exception ex) {
+			System.err.println(ex);
+		}
 	}
 
 	public void header() {
@@ -295,16 +331,7 @@ public class Menu {
 							condition = false;
 							System.out.println("exit");
 						}
-						Item i = new Item();
-						System.out.println("Enter the ID of item ");
-						i = shop.item.get(sr.nextInt());
-						System.out.println("Enter the quantity of " + i.getName() + " you want to purchase");
-						i.setQuantity(sr.nextInt());
-						invoice.purchase.add(i);
-						invoice.total();
-						totalSales = totalSales + invoice.getTotalAmount();
-						shop.setTotalSales(totalSales);
-						shop.invoiceList.add(invoice);
+						
 						String url = "jdbc:sqlserver://localhost:1433;" + "databaseName=Invoicing_System;"
 								+ "encrypt=true;" + "trustServerCertificate=true";
 						String user = "sa";
@@ -318,13 +345,48 @@ public class Menu {
 							DriverManager.registerDriver(driver);
 							con = DriverManager.getConnection(url, user, pass);
 							Statement st = con.createStatement();
-							String sql1 = "INSERT INTO [dbo].[Invoice]\r\n" + "           ([invoice_date]\r\n"
-									+ "           ,[customer_name]\r\n" + "           ,[num_items]\r\n"
-									+ "           ,[total_paid]\r\n" + "           ,[total_amount]\r\n"
-									+ "           ,[balance])\r\n" + "     VALUES\r\n ( '" + java.time.LocalDate.now()
-									+ "' , '" + invoice.c.getName() + "' ," + invoice.purchase.size() + ","
-									+ invoice.getTotalPaid() + "," + invoice.getTotalAmount() + ","
-									+ invoice.getTotalBalance() + ");";
+						
+						
+						
+						String sql1 ="SELECT [id]\r\n"
+								+ "      ,[name]\r\n"
+								+ "      ,[unit_price]\r\n"
+								+ "      ,[quantity]\r\n"
+								+ "  FROM [dbo].[Products] where id="+ input +";";
+						ResultSet resultSet = st.executeQuery(sql1);
+						while (resultSet.next()) {
+							System.out.println("Enter the quantity of " + resultSet.getString("name") + " you want to purchase");
+							System.out.println("Name = " + resultSet.getString("name"));
+							System.out.println("Unit Price = " + resultSet.getString("unit_price"));
+							System.out.println("Quantity = " + resultSet.getString("quantity"));
+						}
+						
+						
+						i = shop.item.get(sr.nextInt());
+						System.out.println("Enter the quantity of " + i.getName() + " you want to purchase");
+						i.setQuantity(sr.nextInt());
+						invoice.purchase.add(i);
+						invoice.total();
+						totalSales = totalSales + invoice.getTotalAmount();
+						shop.setTotalSales(totalSales);
+						shop.invoiceList.add(invoice);
+						
+							String sql2 = "INSERT INTO [dbo].[Invoice]\r\n"
+									+ "           ([invoice_date]\r\n"
+									+ "           ,[cID]\r\n"
+									+ "           ,[num_items]\r\n"
+									+ "           ,[total_paid]\r\n"
+									+ "           ,[balance],[total_amount])\r\n"
+									+ "     VALUES('" + java.time.LocalDate.now()
+									+ "' , " + invoice.c.getId() + " ," + invoice.purchase.size() + ","
+									+ invoice.getTotalPaid() + "," + invoice.getTotalBalance() + ","
+									+ invoice.getTotalAmount() + ");"
+											+ "INSERT INTO [dbo].[Invoice_Details]\r\n"
+											+ "           ([invoice_no]\r\n"
+											+ "           ,[product_id]\r\n"
+											+ "           ,[quantity]\r\n"
+											+ "           ,[quantity_price])\r\n"
+											+ "     VALUES("+invoice.c.getId()+","+i.getId()+","+i.getQuantity()+","+i.getPrice()*i.getQuantity()+");";
 
 							Integer m = st.executeUpdate(sql1); // sql execution
 							if (m >= 1) {

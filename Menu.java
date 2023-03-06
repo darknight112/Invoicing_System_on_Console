@@ -22,7 +22,6 @@ public class Menu {
 
 		Menu menu = new Menu();
 		menu.showMenu();
-
 	}
 
 	public void showMenu() {
@@ -200,7 +199,7 @@ public class Menu {
 			element.total();
 
 		}
-		
+
 		String url = "jdbc:sqlserver://localhost:1433;" + "databaseName=Invoicing_System;" + "encrypt=true;"
 				+ "trustServerCertificate=true";
 		String user = "sa";
@@ -213,10 +212,10 @@ public class Menu {
 			DriverManager.registerDriver(driver);
 			con = DriverManager.getConnection(url, user, pass);
 			Statement st = con.createStatement();
-			String sql1 =" select Invoice.invoice_no,Invoice.invoice_date,Invoice.cID,Products.name,Products.unit_price, Invoice_Details.quantity,\r\n"
+			String sql1 = " select Invoice.invoice_no,Invoice.invoice_date,Invoice.cID,Products.name,Products.unit_price, Invoice_Details.quantity,\r\n"
 					+ "  (select Products.unit_price*Invoice_Details.quantity   from Invoice_Details join Products on Invoice_Details.product_id=Products.id   )\r\n"
 					+ "  ,Invoice.total_amount,Invoice.total_paid,Invoice.balance\r\n"
-					+ "   from Invoice , Invoice_Details , Products where Invoice.invoice_no=Invoice_Details.invoice_no and Invoice_Details.product_id=Products.id;" ;
+					+ "   from Invoice , Invoice_Details , Products where Invoice.invoice_no=Invoice_Details.invoice_no and Invoice_Details.product_id=Products.id;";
 
 			ResultSet resultSet = st.executeQuery(sql1);
 			while (resultSet.next()) {
@@ -289,7 +288,7 @@ public class Menu {
 		Invoice invoice = new Invoice();
 		invoice.setId(shop.invoiceList.size());
 		invoice.setDate(java.time.LocalDate.now());
-		
+
 		boolean condition = true;
 		while (condition) {
 			System.out.println("1 Enter the ID of customer who purchase");
@@ -331,7 +330,7 @@ public class Menu {
 							condition = false;
 							System.out.println("exit");
 						}
-						
+
 						String url = "jdbc:sqlserver://localhost:1433;" + "databaseName=Invoicing_System;"
 								+ "encrypt=true;" + "trustServerCertificate=true";
 						String user = "sa";
@@ -345,48 +344,42 @@ public class Menu {
 							DriverManager.registerDriver(driver);
 							con = DriverManager.getConnection(url, user, pass);
 							Statement st = con.createStatement();
-						
-						
-						
-						String sql1 ="SELECT [id]\r\n"
-								+ "      ,[name]\r\n"
-								+ "      ,[unit_price]\r\n"
-								+ "      ,[quantity]\r\n"
-								+ "  FROM [dbo].[Products] where id="+ input +";";
-						ResultSet resultSet = st.executeQuery(sql1);
-						while (resultSet.next()) {
-							System.out.println("Enter the quantity of " + resultSet.getString("name") + " you want to purchase");
-							System.out.println("Name = " + resultSet.getString("name"));
-							System.out.println("Unit Price = " + resultSet.getString("unit_price"));
-							System.out.println("Quantity = " + resultSet.getString("quantity"));
-						}
-						
-						
-						i = shop.item.get(sr.nextInt());
-						System.out.println("Enter the quantity of " + i.getName() + " you want to purchase");
-						i.setQuantity(sr.nextInt());
-						invoice.purchase.add(i);
-						invoice.total();
-						totalSales = totalSales + invoice.getTotalAmount();
-						shop.setTotalSales(totalSales);
-						shop.invoiceList.add(invoice);
-						
-							String sql2 = "INSERT INTO [dbo].[Invoice]\r\n"
-									+ "           ([invoice_date]\r\n"
-									+ "           ,[cID]\r\n"
-									+ "           ,[num_items]\r\n"
-									+ "           ,[total_paid]\r\n"
-									+ "           ,[balance],[total_amount])\r\n"
-									+ "     VALUES('" + java.time.LocalDate.now()
-									+ "' , " + invoice.c.getId() + " ," + invoice.purchase.size() + ","
-									+ invoice.getTotalPaid() + "," + invoice.getTotalBalance() + ","
-									+ invoice.getTotalAmount() + ");"
-											+ "INSERT INTO [dbo].[Invoice_Details]\r\n"
-											+ "           ([invoice_no]\r\n"
-											+ "           ,[product_id]\r\n"
-											+ "           ,[quantity]\r\n"
-											+ "           ,[quantity_price])\r\n"
-											+ "     VALUES("+invoice.c.getId()+","+i.getId()+","+i.getQuantity()+","+i.getPrice()*i.getQuantity()+");";
+
+							String sql1 = "SELECT [id]\r\n" + "      ,[name]\r\n" + "      ,[unit_price]\r\n"
+									+ "      ,[quantity]\r\n" + "  FROM [dbo].[Products] where id=" + input + ";";
+							ResultSet resultSet = st.executeQuery(sql1);
+							String name = null;
+							int id = input;
+							float price = 0;
+							int stockQ;
+							while (resultSet.next()) {
+								name = resultSet.getString("name");
+								price = resultSet.getFloat("unit_price");
+								stockQ = resultSet.getInt("quantity");
+							}
+							System.out.println("Enter the quantity of " + name + " you want to purchase");
+							int quant = (sr.nextInt());
+							Item i=new Item();
+							i.setId(id);
+							i.setName(name);
+							i.setPrice(price);
+							i.setQuantity(quant);
+							invoice.purchase.add(i);
+							invoice.total();
+							totalSales = totalSales + invoice.getTotalAmount();
+							shop.setTotalSales(totalSales);
+							shop.invoiceList.add(invoice);
+
+							String sql2 = "INSERT INTO [dbo].[Invoice]\r\n" + "           ([invoice_date]\r\n"
+									+ "           ,[cID]\r\n" + "           ,[num_items]\r\n"
+									+ "           ,[total_paid]\r\n" + "           ,[balance],[total_amount])\r\n"
+									+ "     VALUES('" + java.time.LocalDate.now() + "' , " + invoice.c.getId() + " ,"
+									+ invoice.purchase.size() + "," + invoice.getTotalPaid() + ","
+									+ invoice.getTotalBalance() + "," + invoice.getTotalAmount() + ");"
+									+ "INSERT INTO [dbo].[Invoice_Details]\r\n" + "           ([invoice_no]\r\n"
+									+ "           ,[product_id]\r\n" + "           ,[quantity]\r\n"
+									+ "           ,[quantity_price])\r\n" + "     VALUES(" + invoice.c.getId() + ","
+									+ i.getId() + "," + i.getQuantity() + "," + i.getPrice() * i.getQuantity() + ");";
 
 							Integer m = st.executeUpdate(sql1); // sql execution
 							if (m >= 1) {
@@ -394,7 +387,6 @@ public class Menu {
 							} else {
 								System.out.println("insertion failed");
 							}
-							
 
 							con.close();
 						} catch (Exception ex) {

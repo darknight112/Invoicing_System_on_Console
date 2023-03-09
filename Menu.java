@@ -1,4 +1,5 @@
 package Invoicing;
+
 import java.io.BufferedReader;
 import java.sql.*;
 import java.io.BufferedWriter;
@@ -17,10 +18,110 @@ public class Menu {
 	float totalSales = 0;
 
 	public static void main(String[] args) throws Exception {
+		Scanner s = new Scanner(System.in);
+		System.out.println("==== Invoice System Login ====");
+		System.out.println("Enter user name");
+		String user1 = s.next();
+		System.out.println("Enter password");
+		String pass1 = s.next();
+
+		String url = "jdbc:sqlserver://localhost:1433;" + "databaseName=Invoicing_System;" + "encrypt=true;"
+				+ "trustServerCertificate=true";
+		String user = user1; // sa
+		String pass = pass1; // root
+
+		Connection con = null;
+
+		try {
+			Driver driver = (Driver) Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver").newInstance();
+			DriverManager.registerDriver(driver);
+			con = DriverManager.getConnection(url, user, pass);
+			Statement st = con.createStatement();
+
+			con.close();
+		} catch (Exception ex) {
+			System.err.println(ex);
+		}
+
 		System.out.println("==== System Main Menu ====");
 
 		Menu menu = new Menu();
 		menu.showMenu();
+
+	}
+
+	public void loadCustomers() {
+		String url = "jdbc:sqlserver://localhost:1433;" + "databaseName=Invoicing_System;" + "encrypt=true;"
+				+ "trustServerCertificate=true";
+		String user = "sa";
+		String pass = "root";
+
+		Connection con = null;
+
+		try {
+			Driver driver = (Driver) Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver").newInstance();
+			DriverManager.registerDriver(driver);
+			con = DriverManager.getConnection(url, user, pass);
+			Statement st = con.createStatement();
+
+			String sql1 = " SELECT *" + "  FROM [dbo].[Customers]";
+
+			Customer c = new Customer();
+
+			ResultSet resultSet1 = st.executeQuery(sql1);
+			while (resultSet1.next()) {
+				c.setId(resultSet1.getInt("id"));
+				c.setName(resultSet1.getString("name"));
+				c.setPhone(resultSet1.getInt("phone"));
+				shop.customer.add(c);
+
+			}
+
+			con.close();
+		} catch (Exception ex) {
+			System.err.println(ex);
+		}
+	}
+
+	void loadItems() {
+		String url = "jdbc:sqlserver://localhost:1433;" + "databaseName=Invoicing_System;" + "encrypt=true;"
+				+ "trustServerCertificate=true";
+		String user = "sa";
+		String pass = "root";
+
+		Connection con = null;
+
+		try {
+			Driver driver = (Driver) Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver").newInstance();
+			DriverManager.registerDriver(driver);
+			con = DriverManager.getConnection(url, user, pass);
+			Statement st = con.createStatement();
+			Item item = new Item();
+			String sql2 = "SELECT *" + "  FROM [dbo].[Products]";
+			System.out.println("=== Product List ===");
+			ResultSet result = st.executeQuery(sql2);
+			while (result.next()) {
+				int id = result.getInt("id");
+				String name = result.getString("name");
+				Float unit_price = result.getFloat("unit_price");
+				int quantity = result.getInt("quantity");
+				System.out.println("Product ID = " + id);
+				item.setId(id);
+				System.out.println("Product Name = " + name);
+				item.setName(name);
+				System.out.println("Product Price = " + unit_price);
+				item.setPrice(unit_price);
+				System.out.println("Product Quantity = " + quantity);
+				item.setQuantity(quantity);
+
+				shop.item.add(item);
+			}
+
+			con.close();
+		} catch (Exception ex) {
+			System.err.println(ex);
+		}
+
 	}
 
 	public void showMenu() {
@@ -48,39 +149,129 @@ public class Menu {
 					switch (sr.nextInt()) {
 					case 1:
 						System.out.println("=== Items List ===");
+						loadItems();
+						loadCustomers();
+
+						String url = "jdbc:sqlserver://localhost:1433;" + "databaseName=Invoicing_System;"
+								+ "encrypt=true;" + "trustServerCertificate=true";
+						String user = "sa";
+						String pass = "root";
+
+						Connection con = null;
+
 						try {
-							BufferedReader read = new BufferedReader(new FileReader("item.txt")); // Creation of
+							Driver driver = (Driver) Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver")
+									.newInstance();
+							DriverManager.registerDriver(driver);
+							con = DriverManager.getConnection(url, user, pass);
+							// System.out.println("Please Enter the Invoice ID:");
+							// int invoiceID = sr.nextInt();
+						
+							System.out.println("=== Invoice List ===");
 
-							// object
-							Scanner scan = new Scanner(read);
-							String scaner;
-							ArrayList<String> arr = new ArrayList<String>();
+							String sql3 = "select Invoice.invoice_no,Invoice.invoice_date,Invoice.cID,Products.id,Products.name,Products.unit_price, Invoice_Details.quantity,\r\n"
+									+ "									Invoice_Details.quantity_price\r\n"
+									+ "								,Invoice.total_amount,Invoice.total_paid,Invoice.balance\r\n"
+									+ "								from Invoice inner join Invoice_Details on Invoice.invoice_no=Invoice_Details.invoice_no\r\n"
+									+ "								inner join Products on  Invoice_Details.product_id=Products.id;";
+							Statement st = con.createStatement();
 
-							int count = 0;
-							while ((scaner = read.readLine()) != null) // Reading Content from the file and insert it to
-																		// the array
-							{
-								arr.add(scaner);
-								count++;
-								System.out.println(scaner);
-							}
-							for (int i = 0; i < arr.size(); i++) {
-								Item t = new Item();
-								Integer tempId = Integer.parseInt(arr.get(i));
-								t.setId(tempId);
-								Float price = Float.parseFloat(arr.get(i + 1));
-								t.setPrice(price);
-								t.setName(arr.get(i + 2));
-								shop.item.add(t);
-								System.out.println(i);
+							ResultSet resultSet3 = st.executeQuery(sql3);
+							Invoice invoice = new Invoice();
+							while (resultSet3.next()) {
+									Item item1 = new Item();
+									Customer customer = new Customer();
+									int no = resultSet3.getInt("invoice_no");
+									String date = resultSet3.getString("invoice_date");
+									invoice.setId(no);
+									invoice.setDate(date);
+									int cID = resultSet3.getInt("cID");
+									
+									for (Customer element : shop.customer) {
+										if(element.getId()==cID) {
+											customer = element;
+										}
+									}
+									
+									invoice.c.setId(customer.getId());
+									invoice.c.setName(customer.getName());
+									invoice.c.setPhone(customer.getPhone());
 
-							}
+									int itemID = resultSet3.getInt("id");
+									String pName = resultSet3.getString("name");
+									int quantity = resultSet3.getInt("quantity");
 
-							scan.close();
+									for (Item element : shop.item) {
+										if(element.getId()==itemID) {
+											item1 = element;
+										}
+									}
 
-						} catch (IOException except) {
-							except.printStackTrace();
+									int i = quantity;
+
+									while (i > 0) {
+										invoice.purchase.add(item1);
+										i--;
+
+									}
+
+									float uPrice = resultSet3.getFloat("unit_price");
+									float p = resultSet3.getFloat("quantity_price");
+
+									float total_amount = resultSet3.getFloat("total_amount");
+									float total_paid = resultSet3.getFloat("total_paid");
+									float balance = resultSet3.getFloat("balance");
+
+									invoice.setTotalAmount(total_amount);
+									invoice.setTotalPaid(total_paid);
+									invoice.setTotalPaid(total_paid);
+									invoice.setTotalBalance(balance);
+
+									System.out.println(no + "\t" + date + "\t" + cID + "\t" + itemID + "\t\t"
+											+ pName + "\t\t" + uPrice + "\t\t" + quantity + "\t\t" + p + "\t\t"
+											+ total_amount + "\t\t" + total_paid + "\t\t" + balance);
+									System.out.println(
+											"--------------------------------------------------------------------------------------------------------------------------------");
+
+								}
+
+							con.close();
+						} catch (Exception ex) {
+							System.err.println(ex);
 						}
+						// try {
+//							BufferedReader read = new BufferedReader(new FileReader("item.txt")); // Creation of
+//
+//							// object
+//							Scanner scan = new Scanner(read);
+//							String scaner;
+//							ArrayList<String> arr = new ArrayList<String>();
+//
+//							int count = 0;
+//							while ((scaner = read.readLine()) != null) // Reading Content from the file and insert it to
+//																		// the array
+//							{
+//								arr.add(scaner);
+//								count++;
+//								System.out.println(scaner);
+//							}
+//							for (int i = 0; i < arr.size(); i++) {
+//								Item t = new Item();
+//								Integer tempId = Integer.parseInt(arr.get(i));
+//								t.setId(tempId);
+//								Float price = Float.parseFloat(arr.get(i + 1));
+//								t.setPrice(price);
+//								t.setName(arr.get(i + 2));
+//								shop.item.add(t);
+//								System.out.println(i);
+//
+//							}
+//
+//							scan.close();
+//
+//						} catch (IOException except) {
+//							except.printStackTrace();
+//						}
 
 						// printInvoice();
 
@@ -215,7 +406,8 @@ public class Menu {
 					+ "  (select Products.unit_price*Invoice_Details.quantity   from Invoice_Details join Products on Invoice_Details.product_id=Products.id   )\r\n"
 					+ "  ,Invoice.total_amount,Invoice.total_paid,Invoice.balance\r\n"
 					+ "   from Invoice , Invoice_Details , Products where Invoice.invoice_no=Invoice_Details.invoice_no and Invoice_Details.product_id=Products.id;";
-
+			Invoice invoice = new Invoice();
+			invoice.setTotalBalance(totalSales);
 			ResultSet resultSet = st.executeQuery(sql1);
 			while (resultSet.next()) {
 				System.out.println("invoice number = " + resultSet.getString("invoice_no"));
@@ -297,8 +489,7 @@ public class Menu {
 			int input = sr.nextInt();
 			switch (input) {
 			case 1:
-				System.out.println("Enter the ID of customer who purchase ");
-				invoice.c = shop.customer.get(sr.nextInt());
+				invoice.c = shop.customer.get(input);
 
 				break;
 			case 2:
@@ -347,7 +538,7 @@ public class Menu {
 							con = DriverManager.getConnection(url, user, pass);
 							Statement st = con.createStatement();
 
-							String sql1 = "SELECT [id]\r\n" + "      ,[name]\r\n" + "      ,[unit_price]\r\n"
+							String sql1 = "SELECT [name]\r\n" + "      ,[unit_price]\r\n"
 									+ "      ,[quantity]\r\n" + "  FROM [dbo].[Products] where id=" + input + ";";
 							ResultSet resultSet = st.executeQuery(sql1);
 							String name = null;
@@ -361,12 +552,13 @@ public class Menu {
 							}
 							System.out.println("Enter the quantity of " + name + " you want to purchase");
 							int quant = (sr.nextInt());
-							Item i=new Item();
+							Item i = new Item();
 							i.setId(id);
 							i.setName(name);
 							i.setPrice(price);
 							i.setQuantity(quant);
 							invoice.purchase.add(i);
+							
 							invoice.total();
 							totalSales = totalSales + invoice.getTotalAmount();
 							shop.setTotalSales(totalSales);
@@ -377,19 +569,22 @@ public class Menu {
 									+ "           ,[total_paid]\r\n" + "           ,[balance],[total_amount])\r\n"
 									+ "     VALUES('" + java.time.LocalDate.now() + "' , " + invoice.c.getId() + " ,"
 									+ invoice.purchase.size() + "," + invoice.getTotalPaid() + ","
-									+ invoice.getTotalBalance() + "," + invoice.getTotalAmount() + ");"
-									+ "INSERT INTO [dbo].[Invoice_Details]\r\n" + "           ([invoice_no]\r\n"
-									+ "           ,[product_id]\r\n" + "           ,[quantity]\r\n"
-									+ "           ,[quantity_price])\r\n" + "     VALUES(" + invoice.c.getId() + ","
-									+ i.getId() + "," + i.getQuantity() + "," + i.getPrice() * i.getQuantity() + ");";
-
-							Integer m = st.executeUpdate(sql1); // sql execution
-							if (m >= 1) {
-								System.out.println("inserted successfully : " + sql1);
-							} else {
-								System.out.println("insertion failed");
+									+ invoice.getTotalBalance() + "," + invoice.getTotalAmount() + ");";
+							
+							String getID="SELECT TOP (1) invoice_no from [dbo].[Invoice] order by invoice_no desc;";
+							ResultSet result = st.executeQuery(getID);
+							int invoice_No=0;
+							while (result.next()) {
+								invoice_No= result.getInt("invoice_no");
 							}
+							 
 
+							String sql = "INSERT INTO [dbo].[Invoice_Details]\r\n" + "           ([invoice_no]\r\n"
+									+ "           ,[product_id]\r\n" + "           ,[quantity]\r\n"
+									+ "           ,[quantity_price])\r\n" + "     VALUES(" + invoice_No + ","
+									+ i.getId() + "," + i.getQuantity() + "," + i.getPrice() * i.getQuantity() + ");";
+							st.executeUpdate(sql2);
+							st.executeUpdate(sql);
 							con.close();
 						} catch (Exception ex) {
 							System.err.println(ex);

@@ -17,7 +17,7 @@ public class Shop {
 	private String website;
 	private float totalSales;
 	ArrayList<Invoice> invoiceList = new ArrayList<Invoice>();
-	ArrayList<Item> item = new ArrayList<Item>();
+	ArrayList<Item> item =  new ArrayList<Item>();
 	ArrayList<Customer> customer = new ArrayList<Customer>();
 	transient Scanner sr = new Scanner(System.in);
 

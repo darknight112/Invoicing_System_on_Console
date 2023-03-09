@@ -6,7 +6,7 @@ import java.time.LocalDate;
 
 public class Invoice {
 	private int id;
-	private int date;
+	private String date;
 	private float totalPaid;
 	private float totalAmount;
 	private float totalBalance;
@@ -46,11 +46,11 @@ public class Invoice {
 		this.id = id;
 	}
 
-	public int getDate() {
+	public String getDate() {
 		return date;
 	}
 
-	public void setDate(int date) {
+	public void setDate(String date) {
 		this.date = date;
 	}
 

@@ -17,7 +17,7 @@ public class Shop {
 	private String website;
 	private float totalSales;
 	ArrayList<Invoice> invoiceList = new ArrayList<Invoice>();
-	ArrayList<Item> item =  new ArrayList<Item>();
+	ArrayList<Item> item = new ArrayList<Item>();
 	ArrayList<Customer> customer = new ArrayList<Customer>();
 	transient Scanner sr = new Scanner(System.in);
 
@@ -50,7 +50,7 @@ public class Shop {
 			Item temItem = new Item();
 
 			temItem.setId(item.size());
-			
+
 			System.out.println("enter item name ");
 			String inputS = sr.next();
 			temItem.setName(inputS);
@@ -72,12 +72,9 @@ public class Shop {
 				DriverManager.registerDriver(driver);
 				con = DriverManager.getConnection(url, user, pass);
 				Statement st = con.createStatement();
-				String sql1 = "INSERT INTO [dbo].[Products]\r\n"
-						+ "           ([name]\r\n"
-						+ "           ,[unit_price]\r\n"
-						+ "           ,[quantity])\r\n"
-						+ "     VALUES( '" + temItem.getName() + "' ,"
-						+ temItem.getPrice() + "," + temItem.getQuantity() + ");";
+				String sql1 = "INSERT INTO [dbo].[Products]\r\n" + "           ([name]\r\n"
+						+ "           ,[unit_price]\r\n" + "           ,[quantity])\r\n" + "     VALUES( '"
+						+ temItem.getName() + "' ," + temItem.getPrice() + "," + temItem.getQuantity() + ");";
 
 				Integer m = st.executeUpdate(sql1); // sql execution
 				if (m >= 1) {
@@ -140,15 +137,6 @@ public class Shop {
 	}
 
 	public void changePrice() {
-		System.out.println("enter item ID ");
-		int input = sr.nextInt();
-		Item tem = new Item();
-		tem = item.get(input);
-		System.out.println("enter item " + tem.getName() + " new price ");
-		input = sr.nextInt();
-		tem.setPrice(input);
-		System.out.println("item price changed ");
-		item.set(input, tem);
 
 		String url = "jdbc:sqlserver://localhost:1433;" + "databaseName=Invoicing_System;" + "encrypt=true;"
 				+ "trustServerCertificate=true";
@@ -162,6 +150,43 @@ public class Shop {
 			DriverManager.registerDriver(driver);
 			con = DriverManager.getConnection(url, user, pass);
 			Statement st = con.createStatement();
+
+			System.out.println("enter item ID ");
+			int input = sr.nextInt();
+			Item tem = new Item();
+
+			String sq = "select * from Products;";
+			ResultSet result = st.executeQuery(sq);
+			int count=0;	
+
+			while (result.next()) {
+				int itemID = result.getInt("id");
+				String name= result.getString("name") ;
+				float price = result.getFloat("unit_price");
+				int quantity = result.getInt("quantity");
+				for (Item element : item) {
+					
+					if(element.getId()==itemID) {
+						
+						tem.setId(itemID);
+						tem.setName(name);
+						tem.setPrice(price);
+						tem.setQuantity(quantity);
+					}
+					count++;
+				}
+				
+					
+				
+			}
+
+			
+			System.out.println("enter item " + tem.getName() + " new price ");
+			input = sr.nextInt();
+			tem.setPrice(input);
+			System.out.println("item price changed ");
+			item.set(count, tem);
+
 			String sql1 = "UPDATE [Products]\r\n" + "   SET [unit_price] =" + tem.getPrice() + " WHERE id= "
 					+ tem.getId();
 

@@ -48,4 +48,4 @@ jobs:
         uses: ad-m/github-push-action@v0.6.0
         with:
           directory: "."
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ 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 }}

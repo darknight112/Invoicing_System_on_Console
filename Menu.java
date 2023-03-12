@@ -70,7 +70,7 @@ public class Menu {
 
 			ResultSet resultSet1 = st.executeQuery(sql1);
 			while (resultSet1.next()) {
-				c.setId(resultSet1.getInt("id"));
+				c.setId(resultSet1.getInt("id")-1);
 				c.setName(resultSet1.getString("name"));
 				c.setPhone(resultSet1.getInt("phone"));
 				shop.customer.add(c);
@@ -101,7 +101,7 @@ public class Menu {
 			System.out.println("=== Product List ===");
 			ResultSet result = st.executeQuery(sql2);
 			while (result.next()) {
-				int id = result.getInt("id");
+				int id = result.getInt("id")-1;
 				String name = result.getString("name");
 				Float unit_price = result.getFloat("unit_price");
 				int quantity = result.getInt("quantity");
@@ -145,8 +145,8 @@ public class Menu {
 					System.out.println("2. Set Shop Name"); // finish
 					System.out.println("3. Set Invoice Header (Tel / Fax / Email / Website)"); // finish
 					System.out.println("4. Go Back"); // finish
-
-					switch (sr.nextInt()) {
+					int switch1=sr.nextInt();
+					switch (switch1) {
 					case 1:
 						System.out.println("=== Items List ===");
 						loadItems();
@@ -177,46 +177,44 @@ public class Menu {
 							Statement st = con.createStatement();
 
 							ResultSet resultSet3 = st.executeQuery(sql3);
-							Invoice invoice = new Invoice();
 							while (resultSet3.next()) {
+								Invoice invoice = new Invoice();
+
 									Item item1 = new Item();
 									Customer customer = new Customer();
-									int no = resultSet3.getInt("invoice_no");
+									int no = resultSet3.getInt("invoice_no")-1;
 									String date = resultSet3.getString("invoice_date");
 									invoice.setId(no);
 									invoice.setDate(date);
-									int cID = resultSet3.getInt("cID");
+									int cID = resultSet3.getInt("cID")-1;
 									
-									for (Customer element : shop.customer) {
-										if(element.getId()==cID) {
-											customer = element;
-										}
-									}
+									customer=shop.customer.get(cID);
 									
 									invoice.c.setId(customer.getId());
 									invoice.c.setName(customer.getName());
 									invoice.c.setPhone(customer.getPhone());
 
-									int itemID = resultSet3.getInt("id");
+									int itemID = resultSet3.getInt("id")-1;
 									String pName = resultSet3.getString("name");
 									int quantity = resultSet3.getInt("quantity");
+									float uPrice = resultSet3.getFloat("unit_price");
+									float p = resultSet3.getFloat("quantity_price");
 
-									for (Item element : shop.item) {
-										if(element.getId()==itemID) {
-											item1 = element;
+									for(Item item : shop.item) {
+										
+										if(itemID==item.getId()) {
+											item1=item;
+											item1.setQuantity(quantity);
 										}
 									}
 
-									int i = quantity;
 
-									while (i > 0) {
+									
 										invoice.purchase.add(item1);
-										i--;
+										
 
-									}
-
-									float uPrice = resultSet3.getFloat("unit_price");
-									float p = resultSet3.getFloat("quantity_price");
+									
+									
 
 									float total_amount = resultSet3.getFloat("total_amount");
 									float total_paid = resultSet3.getFloat("total_paid");
@@ -226,12 +224,16 @@ public class Menu {
 									invoice.setTotalPaid(total_paid);
 									invoice.setTotalPaid(total_paid);
 									invoice.setTotalBalance(balance);
+									shop.invoiceList.add(invoice);
+									shop.setTotalSales(shop.getTotalSales()+total_amount);
+									
+									printInvoice();
 
-									System.out.println(no + "\t" + date + "\t" + cID + "\t" + itemID + "\t\t"
-											+ pName + "\t\t" + uPrice + "\t\t" + quantity + "\t\t" + p + "\t\t"
-											+ total_amount + "\t\t" + total_paid + "\t\t" + balance);
-									System.out.println(
-											"--------------------------------------------------------------------------------------------------------------------------------");
+//									System.out.println(no + "\t" + date + "\t" + cID + "\t" + itemID + "\t\t"
+//											+ pName + "\t\t" + uPrice + "\t\t" + quantity + "\t\t" + p + "\t\t"
+//											+ total_amount + "\t\t" + total_paid + "\t\t" + balance);
+//									System.out.println(
+//											"--------------------------------------------------------------------------------------------------------------------------------");
 
 								}
 
@@ -278,8 +280,9 @@ public class Menu {
 						break;
 					case 2:
 						System.out.println("Enter the new name of the shop ");
-						shop.setName(sr.next());
-						System.out.println("The shop name changed to " + shop.getName());
+						String sName=sr.next();
+						shop.setName(sName);
+						System.out.println("The shop name changed to " + sName);
 
 						break;
 					case 3:
@@ -351,7 +354,17 @@ public class Menu {
 					// items)
 				System.out.println("Enter the invoice ID ");
 				Invoice temp = new Invoice();
-				temp = shop.invoiceList.get(sr.nextInt());
+				int id=sr.nextInt();
+				int count=0;
+				for(Invoice invoice : shop.invoiceList) {
+					
+					if(invoice.getId()==id) {
+						temp = shop.invoiceList.get(count);
+					}
+					count++;
+				}
+				
+				
 				System.out.println("Invoice ID " + temp.getId() + " Invoice Date " + temp.getDate());
 				System.out.println("Shop ID " + shop.getId() + " Shop Name " + shop.getName());
 				System.out.println(" Customer Name " + temp.c.getName() + " Customer Phone " + temp.c.getPhone());
@@ -385,47 +398,56 @@ public class Menu {
 		for (Invoice element : shop.invoiceList) {
 			System.out.println("Invoice ID " + element.getId() + " Invoice Date " + element.getDate());
 			System.out.println("Shop ID " + shop.getId() + " Shop Name " + shop.getName());
-			System.out.println(" Customer Name " + element.c.getName() + " Customer Phone " + element.c.getPhone());
-			element.total();
-
-		}
-
-		String url = "jdbc:sqlserver://localhost:1433;" + "databaseName=Invoicing_System;" + "encrypt=true;"
-				+ "trustServerCertificate=true";
-		String user = "sa";
-		String pass = "root";
-
-		Connection con = null;
-
-		try {
-			Driver driver = (Driver) Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver").newInstance();
-			DriverManager.registerDriver(driver);
-			con = DriverManager.getConnection(url, user, pass);
-			Statement st = con.createStatement();
-			String sql1 = " select Invoice.invoice_no,Invoice.invoice_date,Invoice.cID,Products.name,Products.unit_price, Invoice_Details.quantity,\r\n"
-					+ "  (select Products.unit_price*Invoice_Details.quantity   from Invoice_Details join Products on Invoice_Details.product_id=Products.id   )\r\n"
-					+ "  ,Invoice.total_amount,Invoice.total_paid,Invoice.balance\r\n"
-					+ "   from Invoice , Invoice_Details , Products where Invoice.invoice_no=Invoice_Details.invoice_no and Invoice_Details.product_id=Products.id;";
-			Invoice invoice = new Invoice();
-			invoice.setTotalBalance(totalSales);
-			ResultSet resultSet = st.executeQuery(sql1);
-			while (resultSet.next()) {
-				System.out.println("invoice number = " + resultSet.getString("invoice_no"));
-				System.out.println("Date = " + resultSet.getString("invoice_date"));
-				System.out.println("Customer ID = " + resultSet.getString("cID"));
-				System.out.println("Product name = " + resultSet.getString("name"));
-				System.out.println("unit price = " + resultSet.getString("unit_price"));
-				System.out.println("quantity = " + resultSet.getString("quantity"));
-				System.out.println("Price = " + resultSet.getString(""));
-				System.out.println("Total Amount = " + resultSet.getString("total_amount"));
-				System.out.println("Total Paid = " + resultSet.getString("total_paid"));
-				System.out.println("Total Balance = " + resultSet.getString("balance"));
+			System.out.println(" Customer Name: " + element.c.getName() + " Customer Phone: " + element.c.getPhone());
+			for(Item item : element.purchase) {
+				System.out.println(" Item Name: " + item.getName() + " Item unit price: " + item.getPrice());
+				System.out.println(" Quantity: " + item.getQuantity() + " Item price: " + (item.getPrice()*item.getQuantity()));
 
 			}
-			con.close();
-		} catch (Exception ex) {
-			System.err.println(ex);
+			System.out.println(" total amount : " + element.getTotalAmount());
+			System.out.println(" total paid : " + element.getTotalPaid());
+			System.out.println(" total balance : " + element.getTotalBalance());
+
+			
+
 		}
+
+//		String url = "jdbc:sqlserver://localhost:1433;" + "databaseName=Invoicing_System;" + "encrypt=true;"
+//				+ "trustServerCertificate=true";
+//		String user = "sa";
+//		String pass = "root";
+//
+//		Connection con = null;
+//
+//		try {
+//			Driver driver = (Driver) Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver").newInstance();
+//			DriverManager.registerDriver(driver);
+//			con = DriverManager.getConnection(url, user, pass);
+//			Statement st = con.createStatement();
+//			String sql1 = " select Invoice.invoice_no,Invoice.invoice_date,Invoice.cID,Products.name,Products.unit_price, Invoice_Details.quantity,\r\n"
+//					+ "  (select Products.unit_price*Invoice_Details.quantity   from Invoice_Details join Products on Invoice_Details.product_id=Products.id   )\r\n"
+//					+ "  ,Invoice.total_amount,Invoice.total_paid,Invoice.balance\r\n"
+//					+ "   from Invoice , Invoice_Details , Products where Invoice.invoice_no=Invoice_Details.invoice_no and Invoice_Details.product_id=Products.id;";
+//			Invoice invoice = new Invoice();
+//			invoice.setTotalBalance(totalSales);
+//			ResultSet resultSet = st.executeQuery(sql1);
+//			while (resultSet.next()) {
+//				System.out.println("invoice number = " + resultSet.getString("invoice_no"));
+//				System.out.println("Date = " + resultSet.getString("invoice_date"));
+//				System.out.println("Customer ID = " + resultSet.getString("cID"));
+//				System.out.println("Product name = " + resultSet.getString("name"));
+//				System.out.println("unit price = " + resultSet.getString("unit_price"));
+//				System.out.println("quantity = " + resultSet.getString("quantity"));
+//				System.out.println("Price = " + resultSet.getString(""));
+//				System.out.println("Total Amount = " + resultSet.getString("total_amount"));
+//				System.out.println("Total Paid = " + resultSet.getString("total_paid"));
+//				System.out.println("Total Balance = " + resultSet.getString("balance"));
+//
+//			}
+//			con.close();
+//		} catch (Exception ex) {
+//			System.err.println(ex);
+//		}
 	}
 
 	public void header() {
